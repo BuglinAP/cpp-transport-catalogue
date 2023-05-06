@@ -2,9 +2,9 @@
 
 using namespace std::literals;
 
-namespace stat_reader
+namespace transport_catalogue
 {
-	StatReader::StatReader(transport_catalogue::TransportCatalogue& transport_catalogue)
+	StatReader::StatReader(const TransportCatalogue& transport_catalogue)
 		: transport_catalogue_(transport_catalogue)
 	{
 	}
@@ -31,47 +31,47 @@ namespace stat_reader
 		{
 			if (request.type == "Bus"s)
 			{
-				transport_catalogue::BusInfo bus_info = transport_catalogue_.GetBusInfo(request.query);
-				if (bus_info.amount_stops == 0)
+				auto bus_info = transport_catalogue_.GetBusInfo(request.query);
+				if (bus_info.has_value())
 				{
-					std::cout << "Bus " << bus_info.name << ": "s << "not found" << std::endl;
+					std::cout << "Bus "
+						<< bus_info.value().name << ": "s
+						<< bus_info.value().amount_stops << " stops on route, "s
+						<< bus_info.value().uniq_stops << " unique stops, "s
+						<< bus_info.value().route_length << " route length, "s
+						<< bus_info.value().curvature << " curvature"s << std::endl;
 				}
 				else
 				{
-					std::cout << "Bus "
-						<< bus_info.name << ": "s
-						<< bus_info.amount_stops << " stops on route, "s
-						<< bus_info.uniq_stops << " unique stops, "s
-						<< bus_info.route_length << " route length, "s
-						<< bus_info.curvature << " curvature"s << std::endl;
+					std::cout << "Bus " << request.query << ": "s << "not found" << std::endl;
 				}
 			}
 
 			if (request.type == "Stop"s)
 			{
-				const transport_catalogue::Stop* myStop = transport_catalogue_.FindStop(request.query);
-				if (myStop == nullptr)
+				const Stop* stop = transport_catalogue_.FindStop(request.query);
+				if (stop == nullptr)
 				{
 					std::cout << "Stop " << request.query << ": not found" << std::endl;
 				}
 				else
 				{
-					std::set<std::string_view> stop_info = transport_catalogue_.GetStopInfo(request.query);
-					if (stop_info.empty())
-					{
-						std::cout << "Stop " << request.query << ": no buses" << std::endl;
-					}
-					else
+					auto stop_buses = transport_catalogue_.GetStopBuses(request.query);
+					if (stop_buses.has_value())
 					{
 						std::cout << "Stop " << request.query << ": "s << "buses ";
-						for (const std::string_view busname : stop_info)
+						for (const std::string_view busname : stop_buses.value())
 						{
 							std::cout << std::string(busname) << " ";
 						}
 						std::cout << std::endl;
 					}
+					else
+					{
+						std::cout << "Stop " << request.query << ": no buses" << std::endl;
+					}
 				}
 			}
 		}
 	}
-}//namespace stat_reader
+}//namespace transport_catalogue

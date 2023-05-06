@@ -2,6 +2,31 @@
 
 namespace transport_catalogue
 {
+	namespace detail
+	{
+		std::size_t PairStopHasher::operator()(const std::pair<const  Stop*, const  Stop*>& pair_stop) const
+		{
+			constexpr std::size_t hash_multiplier = 42;
+
+			// Вычисляем хеш для каждого указателя на Stop
+			std::size_t hash1 = 0;
+			std::size_t hash2 = 0;
+
+			for (char c : pair_stop.first->name)
+			{
+				hash1 = hash1 * hash_multiplier + c;
+			}
+
+			for (char c : pair_stop.second->name)
+			{
+				hash2 = hash2 * hash_multiplier + c;
+			}
+
+			// Комбинируем хеши указателей в одно хеш-значение
+			return hash1 * hash_multiplier + hash2;
+		}
+	}//namespace detail
+
 	void TransportCatalogue::AddStop(Stop stop)
 	{
 		stops_.push_back(std::move(stop));
@@ -18,7 +43,7 @@ namespace transport_catalogue
 		return static_cast<const Stop*>(stopname_to_stop_.at(stop));
 	}
 
-	std::set<std::string_view> TransportCatalogue::GetStopInfo(std::string_view stop) const
+	std::optional<std::set<std::string_view>> TransportCatalogue::GetStopBuses(std::string_view stop) const
 	{
 		if (stopname_to_busnames_.count(stop) == 0)
 		{
@@ -27,7 +52,7 @@ namespace transport_catalogue
 		return stopname_to_busnames_.at(stop);
 	}
 
-	void TransportCatalogue::AddDistance(const std::string& stop, std::vector<std::pair<std::string, int>>& distances_to_stops)
+	void TransportCatalogue::SetDistance(const std::string& stop, std::vector<std::pair<std::string, int>>& distances_to_stops)
 	{
 		if (distances_to_stops.size() == 0)
 		{
@@ -60,14 +85,14 @@ namespace transport_catalogue
 		}
 	}
 
-	void TransportCatalogue::AddBus(const Bus& bus_input, const std::vector<std::string>& stops)
+	void TransportCatalogue::AddBus(const std::tuple<std::string, bool, std::vector<std::string>>& bus_input)
 	{
 		Bus bus_add;
 		std::vector <std::string_view> stops_view;
 
-		bus_add.name = bus_input.name;
-		bus_add.is_roundtrip = bus_input.is_roundtrip;
-		for (const std::string& stop : stops)
+		bus_add.name = std::get<0>(bus_input);
+		bus_add.is_roundtrip = std::get<1>(bus_input);
+		for (const std::string& stop : std::get<2>(bus_input))
 		{
 			if (stopname_to_stop_.count(stop))
 			{
@@ -93,19 +118,18 @@ namespace transport_catalogue
 		return busname_to_bus_.at(bus);
 	}
 
-	BusInfo TransportCatalogue::GetBusInfo(std::string_view bus_name) const
+	std::optional<BusInfo> TransportCatalogue::GetBusInfo(std::string_view bus_name) const
 	{
 		BusInfo bus_info;
 		double compute_length = 0;
 		int get_distance_length = 0;
 		const Bus* bus = FindBus(bus_name);
-		bus_info.name = bus_name;
+		
 		if (bus == nullptr)
 		{
-			bus_info.amount_stops = 0;
-			return bus_info;
+			return {};
 		}
-
+		bus_info.name = bus_name;
 		std::vector<std::string_view> stops_view = bus->stops;
 		if (stops_view.size() == 0)
 		{
@@ -144,29 +168,4 @@ namespace transport_catalogue
 		bus_info.curvature = get_distance_length / compute_length;
 		return bus_info;
 	}
-
-	namespace detail
-	{
-		std::size_t PairStopHasher::operator()(const std::pair<const  Stop*, const  Stop*>& p) const
-		{
-			constexpr std::size_t hash_multiplier = 42;
-
-			// Вычисляем хеш для каждого указателя на Stop
-			std::size_t hash1 = 0;
-			std::size_t hash2 = 0;
-
-			for (char c : p.first->name)
-			{
-				hash1 = hash1 * hash_multiplier + c;
-			}
-
-			for (char c : p.second->name)
-			{
-				hash2 = hash2 * hash_multiplier + c;
-			}
-
-			// Комбинируем хеши указателей в одно хеш-значение
-			return hash1 * hash_multiplier + hash2;
-		}
-	}//namespace detail
 }//namespace transport_catalogue

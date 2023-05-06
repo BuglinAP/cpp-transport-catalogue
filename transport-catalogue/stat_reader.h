@@ -7,7 +7,7 @@
 #include <string_view>
 #include <fstream>
 
-namespace stat_reader
+namespace transport_catalogue
 {
 	struct RequestData
 	{
@@ -18,12 +18,12 @@ namespace stat_reader
 	class StatReader
 	{
 	public:
-		StatReader(transport_catalogue::TransportCatalogue& transport_catalogue);
+		explicit StatReader(const TransportCatalogue& transport_catalogue);
 
 		void OutputRequests(std::istream& input_stream);
 
 	private:
-		transport_catalogue::TransportCatalogue& transport_catalogue_;
+		const TransportCatalogue& transport_catalogue_;
 		std::vector<RequestData> requests_queue_;
 	};
-}//namespace stat_reader
+}//namespace transport_catalogue

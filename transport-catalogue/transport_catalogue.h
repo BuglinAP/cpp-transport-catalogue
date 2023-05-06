@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <iostream>
 #include <set>
+#include <optional>
 
 namespace transport_catalogue
 {
@@ -33,6 +34,14 @@ namespace transport_catalogue
 		double curvature;
 	};
 
+	namespace detail
+	{
+		struct PairStopHasher
+		{
+			std::size_t operator()(const std::pair<const  Stop*, const  Stop*>& pair_stop) const;
+		};
+	}// namespace detail
+
 	class TransportCatalogue
 	{
 	public:
@@ -40,17 +49,17 @@ namespace transport_catalogue
 
 		const Stop* FindStop(const std::string_view stop) const;
 
-		std::set<std::string_view> GetStopInfo(std::string_view stop) const;
+		std::optional<std::set<std::string_view>> GetStopBuses(std::string_view stop) const;
 
-		void AddDistance(const std::string& stop, std::vector<std::pair<std::string, int>>& distances_to_stops);
+		void SetDistance(const std::string& stop, std::vector<std::pair<std::string, int>>& distances_to_stops);
 
 		int GetDistance(const Stop* stop_ptr, const Stop* anoter_stop_ptr) const;
 
-		void AddBus(const Bus& bus, const std::vector<std::string>& stops);
+		void AddBus(const std::tuple<std::string, bool, std::vector<std::string>>& bus_input);
 
 		const Bus* FindBus(std::string_view bus) const;
 
-		BusInfo GetBusInfo(std::string_view bus) const;
+		std::optional<BusInfo> GetBusInfo(std::string_view bus) const;
 
 	private:
 		std::deque<Bus> buses_;
@@ -62,12 +71,4 @@ namespace transport_catalogue
 
 		std::unordered_map<std::pair<const Stop*, const Stop*>, int, detail::PairStopHasher> stops_distances_;
 	};
-
-	namespace detail
-	{
-		struct PairStopHasher
-		{
-			std::size_t operator()(const std::pair<const  Stop*, const  Stop*>& p) const;
-		};
-	}// namespace detail
 }//namespace transport_catalogue

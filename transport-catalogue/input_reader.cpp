@@ -3,9 +3,9 @@
 
 using namespace std::literals;
 
-namespace input_reader
+namespace transport_catalogue
 {
-    InputReader::InputReader(transport_catalogue::TransportCatalogue& transport_catalogue)
+    InputReader::InputReader(TransportCatalogue& transport_catalogue)
         : transport_catalogue_(transport_catalogue)
     {
     }
@@ -35,27 +35,27 @@ namespace input_reader
             }
         }
 
-        for (const transport_catalogue::Stop& stop : request_stops_)
+        for (const Stop& stop : request_stops_)
         {
             transport_catalogue_.AddStop(stop);
         }
 
         int i = 0;
-        for (const transport_catalogue::Stop & stop : request_stops_)
+        for (const Stop & stop : request_stops_)
         {
-            transport_catalogue_.AddDistance(stop.name, distances_to_stops_[i]);
+            transport_catalogue_.SetDistance(stop.name, distances_to_stops_[i]);
             ++i;
         }
 
-        for (const auto& [bus, bus_stops] : request_buses_)
+        for (const auto& bus : request_buses_)
         {
-            transport_catalogue_.AddBus(bus, bus_stops);
+            transport_catalogue_.AddBus(bus);
         }
     }
 
     void InputReader::ReadStop(std::string& request_stop)
     {
-        transport_catalogue::Stop stop;
+        Stop stop;
         std::vector<std::pair<std::string, int>> distances_to_stops;
 
         std::size_t colon_pos = request_stop.find(": "s);
@@ -86,30 +86,31 @@ namespace input_reader
 
     void InputReader::ReadBus(std::string& request_bus)
     {
-        transport_catalogue::Bus bus;
-        std::string delimiter = ": "s;
-        bus.name = request_bus.substr(0, request_bus.find(delimiter));
-        request_bus.erase(0, request_bus.find(delimiter) + delimiter.length());
+        std::string bus_name;
+        bool is_roundtrip;
         std::vector<std::string> bus_stops;
+        std::string delimiter = ": "s;
+        bus_name = request_bus.substr(0, request_bus.find(delimiter));
+        request_bus.erase(0, request_bus.find(delimiter) + delimiter.length());
         auto roundtrip = request_bus.find(">"s);
         if (roundtrip != std::string::npos)
         {
-            bus.is_roundtrip = true;
+            is_roundtrip = true;
             bus_stops = SplitBusStops(request_bus, " > "s);
         }
         else
         {
-            bus.is_roundtrip = false;
+            is_roundtrip = false;
             bus_stops = SplitBusStops(request_bus, " - "s);
         }
-        request_buses_.push_back(std::make_pair(bus, bus_stops));
+        request_buses_.push_back(std::make_tuple(bus_name, is_roundtrip, bus_stops));
     }
 
     std::vector<std::string> InputReader::SplitBusStops(const std::string& request, const std::string& delimiter)
     {
         std::vector<std::string> bus_stops;
         std::string stop;
-        size_t start_pos = 0, end_pos; //delimiter_length = delimiter.length();
+        size_t start_pos = 0, end_pos;
         while ((end_pos = request.find(delimiter, start_pos)) != std::string::npos)
         {
             stop = request.substr(start_pos, end_pos - start_pos);
@@ -119,4 +120,4 @@ namespace input_reader
         bus_stops.push_back(request.substr(start_pos));
         return bus_stops;
     }
-}//namespace input_reader
+}//namespace transport_catalogue

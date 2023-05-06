@@ -7,9 +7,10 @@
 int main()
 {
 	transport_catalogue::TransportCatalogue tc;
-	input_reader::InputReader ir(tc);
+	transport_catalogue::InputReader ir(tc);
 	ir.ReadRequests(std::cin);
-	stat_reader::StatReader sr(tc);
+	transport_catalogue::StatReader sr(tc);
 	sr.OutputRequests(std::cin);
+	system("pause");
 	return 0;
 }
