@@ -22,7 +22,7 @@ namespace transport_catalogue
 		};
 	}// namespace detail
 
-	class TransportCatalogue
+	class TransportCatalogue final
 	{
 	public:
 		void AddStop(Stop stop);

@@ -119,23 +119,29 @@ namespace transport_catalogue
         auto bus_info = transport_catalogue_.GetBusInfo(bus_name);
         if (bus_info.has_value())
         {
-            json::Node bus_output = json::Dict
+           /* json::Node bus_output = json::Dict
             {
                 {"curvature"s, bus_info.value().curvature},
                 {"request_id"s, id},
                 {"route_length"s, bus_info.value().route_length},
                 {"stop_count"s, bus_info.value().amount_stops},
                 {"unique_stop_count"s, bus_info.value().uniq_stops}
-            };
+            }; */
+            json::Node bus_output = json::Builder{}.StartDict().
+                                    Key("curvature"s).Value(bus_info.value().curvature).
+                                    Key("route_length"s).Value(bus_info.value().route_length).
+                                    Key("stop_count"s).Value(bus_info.value().amount_stops).
+                                    Key("unique_stop_count"s).Value(bus_info.value().uniq_stops).
+                                    Key("request_id"s).Value(id).
+                                    EndDict().Build().AsDict();
             result.emplace_back(bus_output);
         }
         else
         {
-            json::Node empty_bus_output = json::Dict
-            {
-                {"error_message"s , "not found"s},
-                {"request_id"s, id}
-            };
+            json::Node empty_bus_output = json::Builder{}.StartDict().
+                                          Key("error_message"s).Value("not found"s).
+                                          Key("request_id"s).Value(id).
+                                          EndDict().Build().AsDict();
             result.emplace_back(empty_bus_output);
         }
     }
@@ -147,24 +153,22 @@ namespace transport_catalogue
         const Stop* stop = transport_catalogue_.FindStop(stop_name);
         if (stop == nullptr)
         {
-            json::Node empty_stop_output = json::Dict
-            {
-                {"error_message"s , "not found"s},
-                {"request_id"s, id}
-            };
+            json::Node empty_stop_output = json::Builder{}.StartDict().
+                                           Key("error_message"s).Value("not found"s).
+                                           Key("request_id"s).Value(id).
+                                           EndDict().Build().AsDict();
             result.emplace_back(empty_stop_output);
 
         }
         else
         {
             auto stop_buses = transport_catalogue_.GetStopBuses(stop_name);
-            json::Array routes;
-            std::copy(stop_buses.begin(), stop_buses.end(), std::back_inserter(routes));
-            json::Node stop_output = json::Dict
-            {
-                {"buses"s, routes},
-                {"request_id"s,  id}
-            };
+            json::Array buses;
+            std::copy(stop_buses.begin(), stop_buses.end(), std::back_inserter(buses));
+            json::Node stop_output = json::Builder{}.StartDict().
+                                     Key("buses"s).Value(buses).
+                                     Key("request_id"s).Value(id).
+                                     EndDict().Build().AsDict();
             result.emplace_back(stop_output);
         }
     }
@@ -172,15 +176,18 @@ namespace transport_catalogue
     void JsonReader::RenderMap(const json::Node& request, json::Array& result) const
     {
         int id = request.AsDict().at("id"s).AsInt();
+        const auto& buses = transport_catalogue_.GetBusnameToBus();
+        const auto& stops = transport_catalogue_.GetStopnameToStop();
+        const auto& stop_buses = transport_catalogue_.GetStopnameToBusnames();
         std::ostringstream out;
-        MapRenderer renderer(transport_catalogue_);
+
+        MapRenderer renderer;
         renderer.SetSettings(LoadRenderSettings());
-        renderer.RenderMap().Render(out);
-        json::Node answer_map = json::Dict
-        {
-            {"map"s, out.str()},
-            {"request_id"s, id}
-        };
+        renderer.RenderMap(buses, stops, stop_buses).Render(out);
+        json::Node answer_map = json::Builder{}.StartDict().
+                                Key("map"s).Value(out.str()).
+                                Key("request_id"s).Value(id).
+                                EndDict().Build().AsDict();
         result.emplace_back(answer_map);
     }
 

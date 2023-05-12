@@ -124,14 +124,13 @@ public:
     using Stops = std::map<std::string_view, const Stop*>;
     using StopBuses = std::unordered_map<std::string_view, std::set<std::string>>;
     
-    explicit MapRenderer(const TransportCatalogue& transport_catalogue);
-
     void SetSettings(const RenderSettings &settings);
 
-    svg::Document RenderMap();
+	svg::Document RenderMap(const std::unordered_map<std::string_view, Bus*>& buses,
+		                    const std::unordered_map<std::string_view, Stop*>& stops,
+		                    const std::unordered_map<std::string_view, std::set<std::string>>& stop_buses);
 
 private:
-    const TransportCatalogue& transport_catalogue_;
 	RenderSettings settings_;
 
     void RenderLines(svg::Document& document, const Buses& buses, const detail::SphereProjector& sphere_projector) const;

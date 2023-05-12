@@ -2,6 +2,7 @@
 #include "transport_catalogue.h"
 #include "json.h"
 #include "map_renderer.h"
+#include "json_builder.h"
 #include "svg.h"
 #include <iostream>
 #include <string>
@@ -11,7 +12,7 @@
 
 namespace transport_catalogue
 {
-    class JsonReader
+    class JsonReader final
     {
     public:
         // при создании считывает данные из входного потока
