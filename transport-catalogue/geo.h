@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cmath>
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -8,7 +7,7 @@
 namespace geo
 {
     constexpr int EARTH_RADIUS = 6371000;
-
+    
     struct Coordinates
     {
         double lat;

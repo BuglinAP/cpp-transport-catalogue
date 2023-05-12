@@ -9,6 +9,5 @@ int main()
 	transport_catalogue::TransportCatalogue tc;
 	transport_catalogue::JsonReader jr(tc, std::cin);
 	jr.ReadRequests();
-	system("pause");
 	return 0;
 }

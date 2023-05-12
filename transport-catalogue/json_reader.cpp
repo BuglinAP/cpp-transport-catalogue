@@ -36,7 +36,7 @@ namespace transport_catalogue
 
     void JsonReader::ReadStop(const json::Dict& request_stop)
     {
-        domain::Stop stop;
+        Stop stop;
         std::vector<std::pair<std::string, int>> distances_to_stops;
 
         stop.name = request_stop.at("name"s).AsString();
@@ -68,19 +68,19 @@ namespace transport_catalogue
 
     void JsonReader::LoadBaseRequestsToCatalog()
     {
-        for (const domain::Stop& stop : request_stops_)
+        for (const Stop& stop : request_stops_)
         {
             transport_catalogue_.AddStop(stop);
         }
         int i = 0;
-        for (const domain::Stop& stop : request_stops_)
+        for (const Stop& stop : request_stops_)
         {
             transport_catalogue_.SetDistance(stop.name, distances_to_stops_[i]);
             ++i;
         }
-        for (const auto& bus : request_buses_)
+        for (const auto& [bus_name, is_roundtrip, bus_stops] : request_buses_)
         {
-            transport_catalogue_.AddBus(bus);
+            transport_catalogue_.AddBus(bus_name, is_roundtrip, bus_stops);
         }
     }
 
@@ -144,7 +144,7 @@ namespace transport_catalogue
     {
         const std::string& stop_name = request.AsDict().at("name"s).AsString();
         int id = request.AsDict().at("id"s).AsInt();
-        const domain::Stop* stop = transport_catalogue_.FindStop(stop_name);
+        const Stop* stop = transport_catalogue_.FindStop(stop_name);
         if (stop == nullptr)
         {
             json::Node empty_stop_output = json::Dict
@@ -173,9 +173,9 @@ namespace transport_catalogue
     {
         int id = request.AsDict().at("id"s).AsInt();
         std::ostringstream out;
-        map_renderer::MapRenderer renderer;
+        MapRenderer renderer(transport_catalogue_);
         renderer.SetSettings(LoadRenderSettings());
-        renderer.RenderMap(transport_catalogue_).Render(out);
+        renderer.RenderMap().Render(out);
         json::Node answer_map = json::Dict
         {
             {"map"s, out.str()},
@@ -184,7 +184,7 @@ namespace transport_catalogue
         result.emplace_back(answer_map);
     }
 
-    map_renderer::RenderSettings JsonReader::LoadRenderSettings() const
+    RenderSettings JsonReader::LoadRenderSettings() const
     {
         if (data_document_.GetRoot().IsMap() && data_document_.GetRoot().AsDict().count("render_settings"s) > 0)
         {
@@ -199,9 +199,9 @@ namespace transport_catalogue
 
     namespace detail_load
     {
-        map_renderer::RenderSettings Settings(const json::Dict& data)
+        RenderSettings Settings(const json::Dict& data)
         {
-            map_renderer::RenderSettings result;
+            RenderSettings result;
 
             if (data.count("width"s) != 0 && data.at("width"s).IsDouble())
             {

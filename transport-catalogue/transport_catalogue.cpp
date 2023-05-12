@@ -2,7 +2,6 @@
 #include "geo.h"
 
 using namespace std::literals;
-using namespace domain;
 
 namespace transport_catalogue
 {
@@ -38,7 +37,7 @@ namespace transport_catalogue
 		stopname_to_stop_.emplace(stop_ptr->name, stop_ptr);
 	}
 
-	Stop* TransportCatalogue::FindStop(std::string_view stop) const
+	const Stop* TransportCatalogue::FindStop(std::string_view stop) const
 	{
 		if (stopname_to_stop_.count(stop) == 0)
 		{
@@ -89,14 +88,14 @@ namespace transport_catalogue
 		}
 	}
 
-	void TransportCatalogue::AddBus(const std::tuple<std::string, bool, std::vector<std::string>>& bus_input)
+	void TransportCatalogue::AddBus(const std::string& bus_name, bool is_roundtrip, const std::vector<std::string>& bus_stops)
 	{
 		Bus bus_add;
-		std::vector<Stop*> stops_view;
+		std::vector<const Stop*> stops_view;
 
-		bus_add.name = std::get<0>(bus_input);
-		bus_add.is_roundtrip = std::get<1>(bus_input);
-        for (const std::string& stop_name : std::get<2>(bus_input))
+		bus_add.name = bus_name;
+		bus_add.is_roundtrip = is_roundtrip;
+        for (const std::string& stop_name : bus_stops)
         {
             stops_view.push_back(FindStop(stop_name));
         }
@@ -104,7 +103,7 @@ namespace transport_catalogue
 		buses_.push_back(bus_add);
 		Bus* bus_ptr = &buses_.back();
 		busname_to_bus_.emplace(bus_ptr->name, bus_ptr);
-		for (Stop* stop : stops_view)
+		for (const Stop* stop : stops_view)
 		{
 			stopname_to_busnames_[stop->name].insert(bus_ptr->name);
 		}
@@ -131,7 +130,7 @@ namespace transport_catalogue
 			return {};
 		}
 		bus_info.name = bus_name;
-		std::vector<Stop*> stops_view = bus->stops;
+		std::vector<const Stop*> stops_view = bus->stops;
 		if (stops_view.size() == 0)
 		{
 			return bus_info;
@@ -162,7 +161,7 @@ namespace transport_catalogue
 				}
 			}
 		}
-		std::unordered_set<Stop*> uniq_stops(stops_view.begin(), stops_view.end());
+		std::unordered_set<const Stop*> uniq_stops(stops_view.begin(), stops_view.end());
 
 		bus_info.uniq_stops = uniq_stops.size();
 		bus_info.route_length = get_distance_length;

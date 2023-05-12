@@ -14,12 +14,11 @@
 #include <iostream>
 #include <variant>
 
-namespace map_renderer
+namespace transport_catalogue
 {
     namespace detail
     {
-        std::deque<geo::Coordinates> FilterCoordinates(const transport_catalogue::TransportCatalogue& catalogue,
-			const std::unordered_map<std::string_view, domain::Stop*>& stops);
+        std::deque<geo::Coordinates> FilterCoordinates(const std::unordered_map<std::string_view, std::set<std::string>>& stop_buses, const std::unordered_map<std::string_view, Stop*>& stops);
 
         inline const double EPSILON = 1e-6;
         inline bool IsZero(double value)
@@ -117,18 +116,22 @@ struct RenderSettings
     std::vector<svg::Color> color_palette;
 };
 
+// класс для рендеринга маршрутов в формате svg
 class MapRenderer final
 {
 public:
-    using Buses = std::map<std::string_view, const domain::Bus*>;
-    using Stops = std::map<std::string_view, const domain::Stop*>;
+    using Buses = std::map<std::string_view, const Bus*>;
+    using Stops = std::map<std::string_view, const Stop*>;
     using StopBuses = std::unordered_map<std::string_view, std::set<std::string>>;
+    
+    explicit MapRenderer(const TransportCatalogue& transport_catalogue);
 
     void SetSettings(const RenderSettings &settings);
 
-    svg::Document RenderMap(const transport_catalogue::TransportCatalogue &catalogue);
+    svg::Document RenderMap();
 
 private:
+    const TransportCatalogue& transport_catalogue_;
 	RenderSettings settings_;
 
     void RenderLines(svg::Document& document, const Buses& buses, const detail::SphereProjector& sphere_projector) const;

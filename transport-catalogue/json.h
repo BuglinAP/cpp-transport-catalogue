@@ -33,24 +33,13 @@ namespace json
 
     Node LoadNode(std::istream& input);
 
-    class Node 
+    class Node final : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>
     {
     public:
-
-        using Value = std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>;
-
-        Node() = default;
-        Node(const Array& array);
-        Node(Array&& array);
-        Node(const Dict& map);
-        Node(Dict&& map);
-        Node(int value);
-        Node(std::string value);
-        Node(bool bul);
-        Node(double doub);
-        Node(std::nullptr_t);
-
-        const Value& GetValue() const { return value_; }
+        using variant::variant;
+        using Value = variant;
+        
+        const Value& GetValue() const { return *this; }
 
         const Array& AsArray() const;
         const Dict& AsDict() const;
@@ -68,18 +57,15 @@ namespace json
         bool IsArray() const;
         bool IsMap() const;
 
-        bool operator==(const Node& node) const 
+        bool operator==(const Node& rhs) const 
         {
-            return value_ == node.value_;
+            return GetValue() == rhs.GetValue();
         }
 
-        bool operator!=(const Node& node) const
+        bool operator!=(const Node& rhs) const
         {
-            return value_ != node.value_;
+            return GetValue() != rhs.GetValue();
         }
-
-    private:
-        Value value_;
     };
 
     class Document
@@ -105,21 +91,21 @@ namespace json
 
     Document Load(std::istream& input);
 
-    inline void PrintValue(int value, std::ostream& out);
+    void PrintValue(int value, std::ostream& out);
 
-    inline void PrintValue(double value, std::ostream& out);
+    void PrintValue(double value, std::ostream& out);
 
-    inline void PrintValue(std::nullptr_t, std::ostream& out);
+    void PrintValue(std::nullptr_t, std::ostream& out);
     
-    inline void PrintValue(const std::string& value, std::ostream& out);
+    void PrintValue(const std::string& value, std::ostream& out);
 
-    inline void PrintValue(bool bul, std::ostream& out);
+    void PrintValue(bool bul, std::ostream& out);
 
-    inline void PrintValue(const Array& array, std::ostream& out);
+    void PrintValue(const Array& array, std::ostream& out);
 
-    inline void PrintValue(const Dict& map, std::ostream& out);
+    void PrintValue(const Dict& map, std::ostream& out);
 
-    inline void PrintNode(const Node& node, std::ostream& out);
+    void PrintNode(const Node& node, std::ostream& out);
 
     void Print(const Document& doc, std::ostream& output);
 

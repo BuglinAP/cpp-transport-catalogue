@@ -23,9 +23,6 @@ struct Point
     double y = 0;
 };
 
-
-
-
 // Цветовые типы
 
 struct Rgb 

@@ -11,7 +11,7 @@
 
 namespace transport_catalogue
 {
-    class JsonReader final
+    class JsonReader
     {
     public:
         // при создании считывает данные из входного потока
@@ -21,7 +21,7 @@ namespace transport_catalogue
 
     private:
         TransportCatalogue& transport_catalogue_;
-        std::vector<domain::Stop> request_stops_;
+        std::vector<Stop> request_stops_;
         std::vector<std::vector<std::pair<std::string, int>>> distances_to_stops_;
         std::vector<std::tuple<std::string, bool, std::vector<std::string>>> request_buses_;
         json::Document data_document_;
@@ -37,13 +37,13 @@ namespace transport_catalogue
         void OutputStopInfo(const json::Node& request, json::Array& result) const; // ответ на запрос инфромации об остановке   
         void RenderMap(const json::Node& request, json::Array& result) const; // ответ на запрос построения карты маршрутов
 
-        map_renderer::RenderSettings LoadRenderSettings() const;
+        RenderSettings LoadRenderSettings() const;
 
     };
 
     namespace detail_load
     {
-        map_renderer::RenderSettings Settings(const json::Dict& data); // формирует настройки рендеринга
+        RenderSettings Settings(const json::Dict& data); // формирует настройки рендеринга
 
         svg::Point Offset(const json::Array& offset); // считывает пару значений (offset) из ноды
 
