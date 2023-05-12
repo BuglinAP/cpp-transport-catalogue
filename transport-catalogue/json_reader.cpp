@@ -186,10 +186,10 @@ namespace transport_catalogue
 
     RenderSettings JsonReader::LoadRenderSettings() const
     {
-        if (data_document_.GetRoot().IsMap() && data_document_.GetRoot().AsDict().count("render_settings"s) > 0)
+        if (data_document_.GetRoot().IsDict() && data_document_.GetRoot().AsDict().count("render_settings"s) > 0)
         {
             auto& render_settings = data_document_.GetRoot().AsDict().at("render_settings"s);
-            if (render_settings.IsMap())
+            if (render_settings.IsDict())
             {
                 return detail_load::Settings(render_settings.AsDict());
             }

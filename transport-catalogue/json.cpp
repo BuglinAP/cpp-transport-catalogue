@@ -4,7 +4,6 @@ using namespace std::literals;
 
 namespace json 
 {
-
     Node LoadBool(std::istream& input)
     {
         std::string line;
@@ -282,7 +281,7 @@ namespace json
 
     const Dict& Node::AsDict() const
     {
-        if (!IsMap())
+        if (!IsDict())
         {
             throw std::logic_error("logic_error Map"s);
         }
@@ -363,7 +362,7 @@ namespace json
         return std::holds_alternative<Array>(*this);
     }
 
-    bool Node::IsMap() const
+    bool Node::IsDict() const
     {
         return std::holds_alternative<Dict>(*this);
     }
@@ -383,22 +382,22 @@ namespace json
         return Document{ LoadNode(input) };
     }
 
-    inline void PrintValue(int value, std::ostream& out)
+    void PrintValue(int value, std::ostream& out)
     {
         out << value;
     }
 
-    inline void PrintValue(double value, std::ostream& out)
+    void PrintValue(double value, std::ostream& out)
     {
         out << value;
     }
 
-    inline void PrintValue(std::nullptr_t, std::ostream& out)
+    void PrintValue(std::nullptr_t, std::ostream& out)
     {
         out << "null"s;
     }
 
-    inline void PrintValue(const std::string& value, std::ostream& out)
+    void PrintValue(const std::string& value, std::ostream& out)
     {
         //  \n, \r, \", \t, \\.
         out << '"';
@@ -429,7 +428,7 @@ namespace json
         out << '"';
     }
 
-    inline void PrintValue(bool bul, std::ostream& out)
+    void PrintValue(bool bul, std::ostream& out)
     {
         if (bul)
         {
@@ -438,7 +437,7 @@ namespace json
         else out << "false"s;
     }
 
-    inline void PrintValue(const Array& array, std::ostream& out)
+    void PrintValue(const Array& array, std::ostream& out)
     {
         out << "["s << std::endl;
         for (auto node = array.begin(); node != array.end(); ++node)
@@ -457,7 +456,7 @@ namespace json
         out << "]"s;
     }
 
-    inline void PrintValue(const Dict& map, std::ostream& out)
+    void PrintValue(const Dict& map, std::ostream& out)
     {
         out << "{"s << std::endl;
         for (auto i = map.begin(); i != map.end(); ++i)
@@ -481,7 +480,7 @@ namespace json
         out << "}"s;
     }
 
-    inline void PrintNode(const Node& node, std::ostream& out)
+    void PrintNode(const Node& node, std::ostream& out)
     {
         std::visit(
             [&out](const auto& value) { PrintValue(value, out); },

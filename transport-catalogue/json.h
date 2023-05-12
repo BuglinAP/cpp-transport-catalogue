@@ -55,7 +55,7 @@ namespace json
         bool IsString() const;
         bool IsNull() const;
         bool IsArray() const;
-        bool IsMap() const;
+        bool IsDict() const;
 
         bool operator==(const Node& rhs) const 
         {
