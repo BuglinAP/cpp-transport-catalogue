@@ -2,7 +2,7 @@
 
 namespace json
 {
-    using namespace std;
+    using namespace std::literals;
 
     const Node& Builder::Build() const
     {
@@ -15,9 +15,8 @@ namespace json
 
     Builder::KeyValueContext Builder::Key(std::string key)
     {
-        if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && !has_key_)
+        if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && !key_)
         {
-            has_key_ = true;
             key_ = std::move(key);
             return KeyValueContext(*this);
         }
@@ -34,10 +33,10 @@ namespace json
             is_empty_ = false;
             return *this;
         }
-        if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && has_key_)
+        if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && key_)
         {
-            const_cast<Dict&>(nodes_stack_.back()->AsDict()).insert({ key_, new_node });
-            has_key_ = false;
+            const_cast<Dict&>(nodes_stack_.back()->AsDict()).insert({ *key_, new_node });
+            key_.reset();
             return *this;
         }
         if (!nodes_stack_.empty() && nodes_stack_.back()->IsArray())
@@ -51,13 +50,13 @@ namespace json
     Builder::DictItemContext Builder::StartDict()
     {
         Value(Dict{});
-        AddRef(Node(Dict{}));
+        AddRef();
         return DictItemContext(*this);
     }
 
     Builder& Builder::EndDict()
     {
-        if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && !has_key_)
+        if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && !key_)
         {
             nodes_stack_.pop_back();
             return *this;
@@ -68,7 +67,7 @@ namespace json
     Builder::ArrayItemContext Builder::StartArray()
     {
         Value(Array{});
-        AddRef(Node(Array{}));
+        AddRef();
         return ArrayItemContext(*this);
     }
 
@@ -82,27 +81,24 @@ namespace json
         throw std::logic_error("Incorrect place for EndArray"s);
     }
 
-    void Builder::AddRef(const Node& value)
+    void Builder::AddRef()
     {
-        if (value.IsArray() || value.IsDict())
+        if (nodes_stack_.empty())
         {
-            if (nodes_stack_.empty())
-            {
-                nodes_stack_.push_back(&root_);
-                return;
-            }
-            if (nodes_stack_.back()->IsArray())
-            {
-                auto p = &nodes_stack_.back()->AsArray().back();
-                nodes_stack_.push_back(const_cast<Node*>(p));
-                return;
-            }
-            if (nodes_stack_.back()->IsDict())
-            {
-                auto p = &nodes_stack_.back()->AsDict().at(key_);
-                nodes_stack_.push_back(const_cast<Node*>(p));
-                return;
-            }
+            nodes_stack_.push_back(&root_);
+            return;
+        }
+        if (nodes_stack_.back()->IsArray())
+        {
+            auto p = &nodes_stack_.back()->AsArray().back();
+            nodes_stack_.push_back(const_cast<Node*>(p));
+            return;
+        }
+        if (nodes_stack_.back()->IsDict())
+        {
+            auto p = &nodes_stack_.back()->AsDict().at(*key_);
+            nodes_stack_.push_back(const_cast<Node*>(p));
+            return;
         }
     }
 
@@ -112,10 +108,12 @@ namespace json
         : builder_(builder)
     {
     }
+
     Builder::KeyValueContext Builder::DictItemContext::Key(std::string key)
     {
         return builder_.Key(std::move(key));
     }
+
     Builder& Builder::DictItemContext::EndDict()
     {
         return builder_.EndDict();

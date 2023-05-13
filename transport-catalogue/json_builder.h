@@ -3,12 +3,12 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <optional>
 
 #include "json.h"
 
 namespace json 
 {
-
     class Builder final 
     {
         class DictItemContext;
@@ -36,10 +36,9 @@ namespace json
         // состояние по умолчанию при создании словаря
         bool is_empty_ = true;
         // наличие введенного ключа
-        bool has_key_ = false;
-        std::string key_;
+        std::optional<std::string> key_;
         // добавляет указатель на новый узел в nodes_stack_ в зависимости от типа value
-        void AddRef(const Node& value);
+        void AddRef();
     };
 
     // ---- Вспомогательные классы для проверки корректности времени компиляции ----
