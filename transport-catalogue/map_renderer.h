@@ -16,30 +16,30 @@
 
 namespace transport_catalogue
 {
-    namespace detail
-    {
-        std::deque<geo::Coordinates> FilterCoordinates(const std::unordered_map<std::string_view, std::set<std::string>>& stop_buses, const std::unordered_map<std::string_view, Stop*>& stops);
+	namespace detail
+	{
+		std::deque<geo::Coordinates> FilterCoordinates(const std::unordered_map<std::string_view, std::set<std::string>>& stop_buses, const std::unordered_map<std::string_view, Stop*>& stops);
 
-        inline const double EPSILON = 1e-6;
-        inline bool IsZero(double value)
-        {
-            return std::abs(value) < EPSILON;
-        }
+		inline const double EPSILON = 1e-6;
+		inline bool IsZero(double value)
+		{
+			return std::abs(value) < EPSILON;
+		}
 
-		class SphereProjector 
+		class SphereProjector
 		{
 		public:
 			template <typename PointInputIt>
 			SphereProjector(PointInputIt points_begin, PointInputIt points_end, double max_width,
 				double max_height, double padding)
 				: padding_(padding) {
-				if (points_begin == points_end) 
+				if (points_begin == points_end)
 				{
 					return;
 				}
 
 				const auto [left_it, right_it]
-					= std::minmax_element(points_begin, points_end, [](auto lhs, auto rhs) 
+					= std::minmax_element(points_begin, points_end, [](auto lhs, auto rhs)
 				{
 					return lhs.lng < rhs.lng;
 				});
@@ -47,7 +47,7 @@ namespace transport_catalogue
 				const double max_lon = right_it->lng;
 
 				const auto [bottom_it, top_it]
-					= std::minmax_element(points_begin, points_end, [](auto lhs, auto rhs) 
+					= std::minmax_element(points_begin, points_end, [](auto lhs, auto rhs)
 				{
 					return lhs.lat < rhs.lat;
 				});
@@ -55,7 +55,7 @@ namespace transport_catalogue
 				max_lat_ = top_it->lat;
 
 				std::optional<double> width_zoom;
-				if (!IsZero(max_lon - min_lon_)) 
+				if (!IsZero(max_lon - min_lon_))
 				{
 					width_zoom = (max_width - 2 * padding) / (max_lon - min_lon_);
 				}
@@ -92,50 +92,50 @@ namespace transport_catalogue
 			double max_lat_ = 0;
 			double zoom_coeff_ = 0;
 		};
-    }//namespace detail
-    
+	}//namespace detail
+
 // парметры рендеринга
-struct RenderSettings
-{
-    svg::Point size;
+	struct RenderSettings
+	{
+		svg::Point size;
 
-    double padding = 0.0;
+		double padding = 0.0;
 
-    double line_width = 0.0;
-    double stop_radius = 0;
+		double line_width = 0.0;
+		double stop_radius = 0;
 
-    int bus_label_font_size = 0;
-    svg::Point bus_label_offset;
+		int bus_label_font_size = 0;
+		svg::Point bus_label_offset;
 
-    int stop_label_font_size = 0;
-    svg::Point stop_label_offset;
+		int stop_label_font_size = 0;
+		svg::Point stop_label_offset;
 
-    svg::Color underlayer_color;
-    double underlayer_width = 0.0;
+		svg::Color underlayer_color;
+		double underlayer_width = 0.0;
 
-    std::vector<svg::Color> color_palette;
-};
+		std::vector<svg::Color> color_palette;
+	};
 
-// класс для рендеринга маршрутов в формате svg
-class MapRenderer final
-{
-public:
-    using Buses = std::map<std::string_view, const Bus*>;
-    using Stops = std::map<std::string_view, const Stop*>;
-    using StopBuses = std::unordered_map<std::string_view, std::set<std::string>>;
-    
-    void SetSettings(const RenderSettings &settings);
+	// класс для рендеринга маршрутов в формате svg
+	class MapRenderer final
+	{
+	public:
+		using Buses = std::map<std::string_view, const Bus*>;
+		using Stops = std::map<std::string_view, const Stop*>;
+		using StopBuses = std::unordered_map<std::string_view, std::set<std::string>>;
 
-	svg::Document RenderMap(const std::unordered_map<std::string_view, Bus*>& buses,
-		                    const std::unordered_map<std::string_view, Stop*>& stops,
-		                    const std::unordered_map<std::string_view, std::set<std::string>>& stop_buses);
+		void SetSettings(const RenderSettings& settings);
 
-private:
-	RenderSettings settings_;
+		svg::Document RenderMap(const std::unordered_map<std::string_view, Bus*>& buses,
+			const std::unordered_map<std::string_view, Stop*>& stops,
+			const std::unordered_map<std::string_view, std::set<std::string>>& stop_buses);
 
-    void RenderLines(svg::Document& document, const Buses& buses, const detail::SphereProjector& sphere_projector) const;
-    void RenderBusNames(svg::Document& document, const Buses& buses, const detail::SphereProjector& sphere_projector) const;
-    void RenderStops(svg::Document& document, const Stops& stops, const StopBuses &stop_buses, const detail::SphereProjector& sphere_projector) const;
-    void RenderStopNames(svg::Document& document, const Stops& stops, const StopBuses & stop_buses, const detail::SphereProjector& sphere_projector) const;
-};
+	private:
+		RenderSettings settings_;
+
+		void RenderLines(svg::Document& document, const Buses& buses, const detail::SphereProjector& sphere_projector) const;
+		void RenderBusNames(svg::Document& document, const Buses& buses, const detail::SphereProjector& sphere_projector) const;
+		void RenderStops(svg::Document& document, const Stops& stops, const StopBuses& stop_buses, const detail::SphereProjector& sphere_projector) const;
+		void RenderStopNames(svg::Document& document, const Stops& stops, const StopBuses& stop_buses, const detail::SphereProjector& sphere_projector) const;
+	};
 }// namespace map_renderer

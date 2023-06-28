@@ -1,8 +1,11 @@
 #pragma once
+
 #include "transport_catalogue.h"
 #include "json.h"
 #include "map_renderer.h"
 #include "json_builder.h"
+#include "transport_router.h"
+
 #include "svg.h"
 #include <iostream>
 #include <string>
@@ -37,8 +40,11 @@ namespace transport_catalogue
         void OutputBusInfo(const json::Node& request, json::Array& result) const; // ответ на запрос инфромации о маршруте
         void OutputStopInfo(const json::Node& request, json::Array& result) const; // ответ на запрос инфромации об остановке   
         void RenderMap(const json::Node& request, json::Array& result) const; // ответ на запрос построения карты маршрутов
+        void OutputRouteInfo(const json::Node& request, json::Array& result, TransportRouter& router) const;
 
         RenderSettings LoadRenderSettings() const;
+
+        RoutingSettings LoadRoutingSettings() const;
 
     };
 

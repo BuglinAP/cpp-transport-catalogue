@@ -36,16 +36,18 @@ namespace transport_catalogue
 		int GetDistance(const Stop* stop_ptr, const Stop* anoter_stop_ptr) const;
 
 		void AddBus(const std::string& bus_name, bool is_roundtrip, const std::vector<std::string>& bus_stops);
-       
+
 		const Bus* FindBus(std::string_view bus) const;
 
 		std::optional <BusInfo> GetBusInfo(std::string_view bus) const;
-        
-        const std::unordered_map<std::string_view, Bus*>& GetBusnameToBus() const;
-        
-        const std::unordered_map<std::string_view, Stop*>& GetStopnameToStop() const;
-		
-        const std::unordered_map<std::string_view, std::set<std::string>>& GetStopnameToBusnames() const;
+
+		const std::unordered_map<std::string_view, Bus*>& GetBusnameToBus() const;
+
+		const std::unordered_map<std::string_view, Stop*>& GetStopnameToStop() const;
+
+		const std::unordered_map<std::string_view, std::set<std::string>>& GetStopnameToBusnames() const;
+
+		const std::unordered_map<std::pair<const Stop*, const Stop*>, int, detail::PairStopHasher>& GetDistances() const;
 
 	private:
 		std::deque<Bus> buses_;

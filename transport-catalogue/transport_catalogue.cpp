@@ -95,10 +95,10 @@ namespace transport_catalogue
 
 		bus_add.name = bus_name;
 		bus_add.is_roundtrip = is_roundtrip;
-        for (const std::string& stop_name : bus_stops)
-        {
-            stops_view.push_back(FindStop(stop_name));
-        }
+		for (const std::string& stop_name : bus_stops)
+		{
+			stops_view.push_back(FindStop(stop_name));
+		}
 		bus_add.stops = stops_view;
 		buses_.push_back(bus_add);
 		Bus* bus_ptr = &buses_.back();
@@ -168,19 +168,24 @@ namespace transport_catalogue
 		bus_info.curvature = get_distance_length / compute_length;
 		return bus_info;
 	}
-    
-    const std::unordered_map<std::string_view, Bus*> &TransportCatalogue::GetBusnameToBus() const
-    {
-        return busname_to_bus_;
-    }
 
-    const std::unordered_map<std::string_view, Stop*> &TransportCatalogue::GetStopnameToStop() const 
-    {
-        return stopname_to_stop_;
-    }
-    
-    const std::unordered_map<std::string_view, std::set<std::string>>&TransportCatalogue::GetStopnameToBusnames() const
-    {
-         return stopname_to_busnames_;
-    }
+	const std::unordered_map<std::string_view, Bus*>& TransportCatalogue::GetBusnameToBus() const
+	{
+		return busname_to_bus_;
+	}
+
+	const std::unordered_map<std::string_view, Stop*>& TransportCatalogue::GetStopnameToStop() const
+	{
+		return stopname_to_stop_;
+	}
+
+	const std::unordered_map<std::string_view, std::set<std::string>>& TransportCatalogue::GetStopnameToBusnames() const
+	{
+		return stopname_to_busnames_;
+	}
+
+	const std::unordered_map<std::pair<const Stop*, const Stop*>, int, detail::PairStopHasher>& TransportCatalogue::GetDistances() const
+	{
+		return stops_distances_;
+	}
 }//namespace transport_catalogue

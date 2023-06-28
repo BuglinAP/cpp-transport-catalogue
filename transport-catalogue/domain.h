@@ -5,7 +5,7 @@
 
 #include "geo.h"
 
-namespace transport_catalogue 
+namespace transport_catalogue
 {
 	struct Stop
 	{
