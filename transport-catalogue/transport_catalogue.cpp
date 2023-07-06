@@ -68,12 +68,13 @@ namespace transport_catalogue
 			stops_distances_.emplace(std::make_pair(stop_ptr, another_stop_ptr), distance);
 		}
 	}
-    
-    void TransportCatalogue::SetDistance(const std::string &stop_from, const std::string &stop_to, int distance) {
-    Stop* Stop_from = stopname_to_stop_.at(stop_from);
-    Stop* Stop_to = stopname_to_stop_.at(stop_to);
-    stops_distances_.emplace(std::make_pair(Stop_from, Stop_to), distance);
-}
+
+	void TransportCatalogue::SetDistance(const std::string& stop_from, const std::string& stop_to, int distance)
+	{
+		Stop* Stop_from = stopname_to_stop_.at(stop_from);
+		Stop* Stop_to = stopname_to_stop_.at(stop_to);
+		stops_distances_.emplace(std::make_pair(Stop_from, Stop_to), distance);
+	}
 
 	int TransportCatalogue::GetDistance(const Stop* stop_ptr, const Stop* anoter_stop_ptr) const
 	{

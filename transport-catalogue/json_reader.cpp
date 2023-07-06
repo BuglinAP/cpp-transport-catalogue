@@ -14,7 +14,6 @@ namespace transport_catalogue
 	{
 		ReadBaseRequests();
 		LoadBaseRequestsToCatalog();
-		//GenerateOutput();
 	}
 
 	void JsonReader::ReadBaseRequests()
