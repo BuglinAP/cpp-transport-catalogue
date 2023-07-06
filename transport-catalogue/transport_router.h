@@ -55,13 +55,28 @@ namespace transport_catalogue
 		TransportRouter(const transport_catalogue::TransportCatalogue& catalogue, const RoutingSettings& settings);
 
 		void InitRouter();
+        
+        void InternalInit();
 
 		std::optional<TransportRoute> BuildRoute(const std::string& from, const std::string& to);
 
 		const RoutingSettings& GetSettings() const;
 		RoutingSettings& GetSettings();
 
+        Graph& GetGraph();
+    const Graph& GetGraph() const;
+
+    std::unique_ptr<Router>& GetRouter();
+    const std::unique_ptr<Router>& GetRouter() const;
+
+    StopsById& GetStopsById();
+    const StopsById& GetStopsById() const;
+
+    IdsByStopName& GetIdsByStopName();
+    const IdsByStopName& GetIdsByStopName() const;
+        
 	private:
+        bool is_initialized_ = false;
 		const transport_catalogue::TransportCatalogue& catalogue_;
 		RoutingSettings settings_;
 

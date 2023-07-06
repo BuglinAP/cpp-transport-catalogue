@@ -23,15 +23,23 @@ namespace transport_catalogue
 		: catalogue_(catalogue)
 		, settings_(settings)
 	{
-		InitRouter();
 	}
 
 	void TransportRouter::InitRouter()
 	{
-		graph::DirectedWeightedGraph<RouteWeight>graph(CountStops());
-		graph_ = std::move(graph);
-		BuildEdges();
-		router_ = std::make_unique<graph::Router<RouteWeight>>(graph_);
+		if (!is_initialized_)
+		{
+			graph::DirectedWeightedGraph<RouteWeight>graph(CountStops());
+			graph_ = std::move(graph);
+			BuildEdges();
+			router_ = std::make_unique<graph::Router<RouteWeight>>(graph_);
+			is_initialized_ = true;
+		}
+	}
+
+	void TransportRouter::InternalInit()
+	{
+		is_initialized_ = true;
 	}
 
 	std::optional<TransportRouter::TransportRoute> TransportRouter::BuildRoute(const std::string& from, const std::string& to)
@@ -40,6 +48,7 @@ namespace transport_catalogue
 		{
 			return TransportRoute{};
 		}
+		InitRouter();
 		auto from_id = id_by_stop_name_.at(from);
 		auto to_id = id_by_stop_name_.at(to);
 		auto route = router_->BuildRoute(from_id, to_id);
@@ -71,6 +80,34 @@ namespace transport_catalogue
 	RoutingSettings& TransportRouter::GetSettings()
 	{
 		return settings_;
+	}
+
+	TransportRouter::Graph& TransportRouter::GetGraph() {
+		return graph_;
+	}
+	const TransportRouter::Graph& TransportRouter::GetGraph() const {
+		return graph_;
+	}
+
+	std::unique_ptr<TransportRouter::Router>& TransportRouter::GetRouter() {
+		return router_;
+	}
+	const std::unique_ptr<TransportRouter::Router>& TransportRouter::GetRouter() const {
+		return router_;
+	}
+
+	TransportRouter::StopsById& TransportRouter::GetStopsById() {
+		return stops_by_id_;
+	}
+	const TransportRouter::StopsById& TransportRouter::GetStopsById() const {
+		return stops_by_id_;
+	}
+
+	TransportRouter::IdsByStopName& TransportRouter::GetIdsByStopName() {
+		return id_by_stop_name_;
+	}
+	const TransportRouter::IdsByStopName& TransportRouter::GetIdsByStopName() const {
+		return id_by_stop_name_;
 	}
 
 	void TransportRouter::BuildEdges()

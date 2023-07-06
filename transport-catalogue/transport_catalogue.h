@@ -32,6 +32,8 @@ namespace transport_catalogue
 		std::set<std::string> GetStopBuses(std::string_view stop) const;
 
 		void SetDistance(const std::string& stop, std::vector<std::pair<std::string, int>>& distances_to_stops);
+        
+        void SetDistance(const std::string &stop_from, const std::string &stop_to, int distance);
 
 		int GetDistance(const Stop* stop_ptr, const Stop* anoter_stop_ptr) const;
 

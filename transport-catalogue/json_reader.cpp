@@ -14,7 +14,7 @@ namespace transport_catalogue
 	{
 		ReadBaseRequests();
 		LoadBaseRequestsToCatalog();
-		GenerateOutput();
+		//GenerateOutput();
 	}
 
 	void JsonReader::ReadBaseRequests()
@@ -84,7 +84,7 @@ namespace transport_catalogue
 		}
 	}
 
-	void JsonReader::GenerateOutput()
+	void JsonReader::GenerateOutput(const RenderSettings& render_settings, TransportRouter& router)
 	{
 		std::ostream& out = std::cout;
 
@@ -92,7 +92,6 @@ namespace transport_catalogue
 		if (requests.IsArray())
 		{
 			json::Array answers;
-			TransportRouter router(transport_catalogue_, LoadRoutingSettings());
 			for (const auto& request : requests.AsArray())
 			{
 				const std::string& type = request.AsDict().at("type"s).AsString();
@@ -106,7 +105,7 @@ namespace transport_catalogue
 				}
 				else if (type == "Map"s)
 				{
-					RenderMap(request, answers);
+					RenderMap(request, answers, render_settings);
 				}
 				else if (type == "Route"s)
 				{
@@ -124,7 +123,7 @@ namespace transport_catalogue
 		auto bus_info = transport_catalogue_.GetBusInfo(bus_name);
 		if (bus_info.has_value())
 		{
-			json::Node bus_output = 
+			json::Node bus_output =
 				json::Builder{}.StartDict().
 				Key("curvature"s).Value(bus_info.value().curvature).
 				Key("route_length"s).Value(bus_info.value().route_length).
@@ -136,7 +135,7 @@ namespace transport_catalogue
 		}
 		else
 		{
-			json::Node empty_bus_output = 
+			json::Node empty_bus_output =
 				json::Builder{}.StartDict().
 				Key("error_message"s).Value("not found"s).
 				Key("request_id"s).Value(id).
@@ -152,7 +151,7 @@ namespace transport_catalogue
 		const Stop* stop = transport_catalogue_.FindStop(stop_name);
 		if (stop == nullptr)
 		{
-			json::Node empty_stop_output = 
+			json::Node empty_stop_output =
 				json::Builder{}.StartDict().
 				Key("error_message"s).Value("not found"s).
 				Key("request_id"s).Value(id).
@@ -173,7 +172,7 @@ namespace transport_catalogue
 		}
 	}
 
-	void JsonReader::RenderMap(const json::Node& request, json::Array& result) const
+	void JsonReader::RenderMap(const json::Node& request, json::Array& result, const RenderSettings& render_settings) const
 	{
 		int id = request.AsDict().at("id"s).AsInt();
 		const auto& buses = transport_catalogue_.GetBusnameToBus();
@@ -182,9 +181,9 @@ namespace transport_catalogue
 		std::ostringstream out;
 
 		MapRenderer renderer;
-		renderer.SetSettings(LoadRenderSettings());
+		renderer.SetSettings(render_settings);
 		renderer.RenderMap(buses, stops, stop_buses).Render(out);
-		json::Node answer_map = 
+		json::Node answer_map =
 			json::Builder{}.StartDict().
 			Key("map"s).Value(out.str()).
 			Key("request_id"s).Value(id).
@@ -202,7 +201,7 @@ namespace transport_catalogue
 
 		if (!route.has_value())
 		{
-			json::Node error_message = 
+			json::Node error_message =
 				json::Builder{}.StartDict().
 				Key("request_id"s).Value(id).
 				Key("error_message"s).Value("not found"s).
@@ -217,13 +216,13 @@ namespace transport_catalogue
 		for (const auto& edge : route.value())
 		{
 			total_time += edge.total_time;
-			json::Dict wait_elem = 
+			json::Dict wait_elem =
 				json::Builder{}.StartDict().
 				Key("type"s).Value("Wait"s).
 				Key("stop_name"s).Value(std::string(edge.stop_from)).
 				Key("time"s).Value(wait_time).
 				EndDict().Build().AsDict();
-			json::Dict ride_elem = 
+			json::Dict ride_elem =
 				json::Builder{}.StartDict().
 				Key("type"s).Value("Bus"s).
 				Key("bus"s).Value(std::string(edge.bus_name)).
@@ -233,7 +232,7 @@ namespace transport_catalogue
 			items.push_back(wait_elem);
 			items.push_back(ride_elem);
 		}
-		json::Node route_output = 
+		json::Node route_output =
 			json::Builder{}.StartDict().
 			Key("request_id"s).Value(id).
 			Key("total_time"s).Value(total_time).
@@ -242,7 +241,7 @@ namespace transport_catalogue
 		result.emplace_back(route_output);
 	}
 
-	RenderSettings JsonReader::LoadRenderSettings() const
+	std::optional<RenderSettings> JsonReader::LoadRenderSettings() const
 	{
 		if (data_document_.GetRoot().IsDict() && data_document_.GetRoot().AsDict().count("render_settings"s) > 0)
 		{
@@ -252,10 +251,10 @@ namespace transport_catalogue
 				return detail_load::Settings(render_settings.AsDict());
 			}
 		}
-		return {};
+		return std::nullopt;
 	}
 
-	RoutingSettings JsonReader::LoadRoutingSettings() const
+	std::optional<RoutingSettings> JsonReader::LoadRoutingSettings() const
 	{
 		auto& routing_settings = data_document_.GetRoot().AsDict().at("routing_settings"s).AsDict();
 		if (routing_settings.count("bus_wait_time"s) && routing_settings.at("bus_wait_time"s).IsInt()
@@ -267,7 +266,22 @@ namespace transport_catalogue
 			result.velocity = routing_settings.at("bus_velocity"s).AsDouble() * KMH_TO_MMIN;
 			return result;
 		}
-		return {};
+		return std::nullopt;
+	}
+
+	std::optional<serialize::Serializator::Settings> JsonReader::LoadSerializeSettings() const
+	{
+		// загружаем параметры сериализации, если они есть
+		if (data_document_.GetRoot().IsDict() && data_document_.GetRoot().AsDict().count("serialization_settings"s) > 0)
+		{
+			auto& serialization_settngs = data_document_.GetRoot().AsDict().at("serialization_settings"s);
+			if (serialization_settngs.IsDict() && serialization_settngs.AsDict().count("file"s) > 0) {
+				serialize::Serializator::Settings result;
+				result.path = serialization_settngs.AsDict().at("file"s).AsString();
+				return result;
+			}
+		}
+		return std::nullopt;
 	}
 
 	namespace detail_load
